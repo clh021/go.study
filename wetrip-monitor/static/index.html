@@ -11,11 +11,11 @@
     <title>我们行云平台监控台</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="./static/bootstrap.min.css" rel="stylesheet">
+    <link href="./bootstrap.min.css" rel="stylesheet">
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="./static/ie-emulation-modes-warning.js"></script>
+    <script src="./ie-emulation-modes-warning.js"></script>
     <style type="text/css">
       :root #content > #center > .dose > .dosesingle,
       :root #content > #right > .dose > .dosesingle
@@ -46,9 +46,9 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#static">服务状态</a></li>
-            <li><a href="#speed">服务效率</a></li>
-            <li><a href="#jbsync">举报同步</a></li>
+            <li><a href="#static" id="c_static">服务状态</a></li><!--class="active"-->
+            <li><a href="#speed" id="c_speed">服务效率</a></li>
+            <li><a href="#jbsync" id="c_jbsync">举报同步</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -59,21 +59,22 @@
         <h1>我们行云平台监控台</h1>
         <p class="lead">完美适配所有主流设备和主流浏览器<br>开启本页面可一直进行监控，页面保留监控记录直到被关闭。</p>
       </div>
-      
-      <div id="static">
-        <h4>服务状态</h4><hr />
-        <div id="_static"></div>
-        .<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />
-      </div>
-      <div id="speed">
-        <h4>服务效率</h4><hr />
-        <div id="_speed"></div>
-        .<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />
-      </div>
-      <div id="jbsync">
-        <h4>举报同步</h4><hr />
-        <div id="_jbsync"></div>
-        .<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />.<br />.<br /><br />
+      <div class="row">
+        <div id="static" class=".col-xs-6 .col-sm-4">
+          <h4>服务状态</h4><hr />
+          <div id="_static"></div>
+          <br /><br /><br />
+        </div>
+        <div id="speed" class=".col-xs-6 .col-sm-4">
+          <h4>服务效率</h4><hr />
+          <div id="_speed"></div>
+          <br /><br /><br />
+        </div>
+        <div id="jbsync" class=".col-xs-6 .col-sm-4">
+          <h4>举报同步</h4><hr />
+          <div id="_jbsync"></div>
+          <br /><br /><br />
+        </div>
       </div>
     </div><!-- /.container -->
 
@@ -81,10 +82,10 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="./static/jquery.min.js"></script>
-    <script src="./static/bootstrap.min.js"></script>
+    <script src="./jquery.min.js"></script>
+    <script src="./bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="./static/ie10-viewport-bug-workaround.js"></script>
+    <script src="./ie10-viewport-bug-workaround.js"></script>
     
     <!-- Edit By clh021@gmail.com 2016-09-22 21:54:59
     ================================================== -->
@@ -95,10 +96,31 @@
             url: '/heartbeat',
             data: {},
             success: function (data) {
-                $("#_jbsync").prepend(data);//+'<br />'
+              // console.log(data)
+              $("#_static").prepend(data.Svrsttus);//+'<br />'
+              $("#_speed").prepend(data.Svrspeed);//+'<br />'
+              $("#_jbsync").prepend(data.Svrjbsync);//+'<br />'
             }
         })
       }, 2000);
+      var a=$("#static");
+      var b=$("#speed");
+      var c=$("#jbsync");
+      $("#c_static").click(function(){
+        b.animate({height:'hide'},"slow");
+        c.animate({height:'hide'},"slow");
+        a.animate({height:'show'},"slow");
+      });
+      $("#c_speed").click(function(){
+        a.animate({height:'hide'},"slow");
+        c.animate({height:'hide'},"slow");
+        b.animate({height:'show'},"slow");
+      });
+      $("#c_jbsync").click(function(){
+        a.animate({height:'hide'},"slow");
+        b.animate({height:'hide'},"slow");
+        c.animate({height:'show'},"slow");
+      });
     </script>
   </body>
 </html>

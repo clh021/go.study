@@ -2,9 +2,13 @@ package main
 
 import (
 	"io"
+    "io/ioutil"
 	"log"
 	"net/http"
+	"reflect"//用来获取对象的类型
+	"encoding/json"//
 	"os"
+	"fmt"//用来终端调试
 )
 
 /*
@@ -24,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(wd))))
+	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(wd+"/static"))))
 	//尝试访问一下以下地址
 	//localhost:8080/static/static/1.txt
 	//localhost:8080/static/static/
@@ -37,29 +41,79 @@ func main() {
 	}
 }
 type HeartbeatItem struct {
-    svrsttus string
-    svrspeed  string
-    jbsync string
+    Svrsttus 	string
+    Svrspeed  	string
+    Svrjbsync 	string
+}
+
+type Server struct {
+    ServerName string
+    ServerIP   string
+}
+func Show(item HeartbeatItem, w http.ResponseWriter) {
+	fmt.Println(reflect.TypeOf(item.Svrsttus))
+	io.WriteString(w,item.Svrsttus+"<hr />")
+	io.WriteString(w,item.Svrspeed+"<hr />")
+	io.WriteString(w,item.Svrjbsync+"<hr />")
 }
 func Heartbeat(w http.ResponseWriter, r *http.Request)() { //作为要注册路由的hanlder//具体有哪些参数和参数类型等要求看文档
 // func Heartbeat(w http.ResponseWriter, r *http.Request)(result []HeartbeatItem, err error) { //作为要注册路由的hanlder//具体有哪些参数和参数类型等要求看文档
-	io.WriteString(w, "Heartbeat,this is going!") //输出的字符串
-	
-    // m:=map[int]string{1:"a",2:"b",3:"c",4:"d",5:"e"}
-    // s:=make([]int,len(m))
-    // result:=HeartbeatItem{svrsttus:"static result in it",svrspeed:"speed result in it",_jbsync:"jbsync result in it"}
-    // result:=
- //   m:=HeartbeatItem{"static result in it","speed result in it","jbsync result in it"}
+    s := HeartbeatItem{"static result in it<br />","speed result in it<br />",Jbsync()}
+    res, err := json.Marshal(s)
+    if err != nil {
+        fmt.Println("json err:", err)
+    } else {
+    	w.Header().Set("Content-Type", "application/json")
+    }
+    // fmt.Println(reflect.TypeOf(res))
+    // fmt.Println(string(res))
     
- //   result, err := json.Marshal(m)
+	io.WriteString(w, string(res)) //输出的字符串
+	// io.WriteString(w, "Heartbeat,this is going!") //输出的字符串
+	
+    // Show(res,w)
+    
+    // result, err := json.Marshal(m)
+    // if err != nil {
+    // 	fmt.Println(err)
+    //     // io.WriteString(w,err.Error())
+    // }
+    // fmt.Println(string(b))
+    // fmt.Printf(result);
+    // fmt.Println(reflect.TypeOf(m))
+    // fmt.Println(m)
+    // fmt.Println(reflect.TypeOf(result))
+    // fmt.Println(result)
+    // fmt.Println(string(result))
+    // io.WriteString(w,reflect.TypeOf(result))//输出结果
 	// b == []byte(`{"svrsttus":"static result in it","svrspeed":"speed result in it","jbsync":jbsync result in it}`)
 
 	// return
 }
-// func Jbsync(w http.ResponseWriter, r *http.Request) {
-// 	url="http://4g.womenxing.com/dev/index-test.php?r=site/syncjubao"
-// 	resp, err1 := http.Get(url)
-// 	if err1 != nil {
-// 		return
-// 	}
-// }
+func Get(url string) (content string, statusCode int) {
+    resp, err1 := http.Get(url)
+    if err1 != nil {
+        statusCode = -100
+        return
+    }
+    defer resp.Body.Close()
+    data, err2 := ioutil.ReadAll(resp.Body)
+    if err2 != nil {
+        statusCode = -200
+        return
+    }
+    statusCode = resp.StatusCode
+    content = string(data)
+    return
+}
+func Jbsync()(resp string) {
+	url:="http://4g.womenxing.com/?r=site/syncjubao3"
+	resp, statusCode := Get(url)
+	// fmt.Println(reflect.TypeOf(resp))
+	// fmt.Println(resp)
+	// fmt.Println(statusCode)
+	if 200 != statusCode {
+		resp = ""
+	}
+	return
+}
