@@ -14,51 +14,52 @@ import (
 /*
  * 这里是尝试写一个监控程序，有如下效果：
  * 1、可以实时看到举报同步的情况
- * 2、可以监测到部分网页是否运转正常，比如是否能够正常服务，不出现502无响应或空白的情况
- * 3、可以监测到部分服务响应的效率，比如请求返回的计时，是否超过了指定时间等
+ * 2、可以监测到服务器部分各个服务是否运转正常
+ * 3、可以监测到4G系统部分各个功能模块是否运转正常
+ * -----------------------------------------------
+ * 您可以通过该命令运行起来并记录日志: nohup server >> /tmp/nohup.out 2>&1 & 
  */
 
 func main() {
-	mux := http.NewServeMux() //上例中http.HandleFunc其实就是一个ServeMux//更加底层的操作//自己实现
-
-	mux.HandleFunc("/heartbeat", Heartbeat)
-
-	//一个静态文件服务部分
+    // http.HandleFunc("/",Homepage)//降将sayHello
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(wd+"/static"))))
-	//尝试访问一下以下地址
-	//localhost:8080/static/static/1.txt
-	//localhost:8080/static/static/
-	//localhost:8080/static/
-
-	//err 前面有 则去掉 := 中的 :
-	err = http.ListenAndServe(":8081", mux) //两个参数:addr,handler
-	if err != nil {
-		log.Fatal(err) //打印出错误
-	}
+    http.HandleFunc("/heartbeat",Heartbeat)//降将sayHello
+ 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(wd+""))))
+    err = http.ListenAndServe(":8081",nil)//两个参数:addr,handler
+    if err!=nil {
+        log.Fatal(err)//打印出错误
+    }
+    
+// 	mux := http.NewServeMux()
+// 	mux.HandleFunc("/heartbeat", Heartbeat)
+// 	wd, err := os.Getwd()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+//  	//mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(wd+""))))
+//     mux.HandleFunc("/",Homepage)    
+// 	err = http.ListenAndServe(":8081", mux) //两个参数:addr,handler
+// 	if err != nil {
+// 		log.Fatal(err) //打印出错误
+// 	}
 }
 type HeartbeatItem struct {
-    Svrsttus 	string
-    Svrspeed  	string
-    Svrjbsync 	string
+    Server 	string
+    System 	string
+    Jbsync 	string
 }
 
-type Server struct {
-    ServerName string
-    ServerIP   string
-}
 func Show(item HeartbeatItem, w http.ResponseWriter) {
-	fmt.Println(reflect.TypeOf(item.Svrsttus))
-	io.WriteString(w,item.Svrsttus+"<hr />")
-	io.WriteString(w,item.Svrspeed+"<hr />")
-	io.WriteString(w,item.Svrjbsync+"<hr />")
+	fmt.Println(reflect.TypeOf(item.Server))
+	io.WriteString(w,item.Server+"<hr />")
+	io.WriteString(w,item.System+"<hr />")
+	io.WriteString(w,item.Jbsync+"<hr />")
 }
 func Heartbeat(w http.ResponseWriter, r *http.Request)() { //作为要注册路由的hanlder//具体有哪些参数和参数类型等要求看文档
-// func Heartbeat(w http.ResponseWriter, r *http.Request)(result []HeartbeatItem, err error) { //作为要注册路由的hanlder//具体有哪些参数和参数类型等要求看文档
-    s := HeartbeatItem{"static result in it<br />","speed result in it<br />",Jbsync()}
+    s := HeartbeatItem{GetServer(),GetSystem(),GetJbsync()}
     res, err := json.Marshal(s)
     if err != nil {
         fmt.Println("json err:", err)
@@ -69,27 +70,30 @@ func Heartbeat(w http.ResponseWriter, r *http.Request)() { //作为要注册路�
     // fmt.Println(string(res))
     
 	io.WriteString(w, string(res)) //输出的字符串
-	// io.WriteString(w, "Heartbeat,this is going!") //输出的字符串
-	
-    // Show(res,w)
-    
-    // result, err := json.Marshal(m)
-    // if err != nil {
-    // 	fmt.Println(err)
-    //     // io.WriteString(w,err.Error())
-    // }
-    // fmt.Println(string(b))
-    // fmt.Printf(result);
-    // fmt.Println(reflect.TypeOf(m))
-    // fmt.Println(m)
-    // fmt.Println(reflect.TypeOf(result))
-    // fmt.Println(result)
-    // fmt.Println(string(result))
-    // io.WriteString(w,reflect.TypeOf(result))//输出结果
-	// b == []byte(`{"svrsttus":"static result in it","svrspeed":"speed result in it","jbsync":jbsync result in it}`)
-
-	// return
 }
+//获取服务器各个状态信息
+func GetServer()(resp string) {
+    //包含诸如：内存，网络，磁盘，CPU，redis,ftp,mysql,ping等服务的状态
+    resp="服务器的各个系统状态将会呈现在这里<br />"
+    return
+}
+//尝试访问4G系统部分各个功能模块以确定运作是否正常
+func GetSystem()(resp string) {
+    //包含诸如：api,app,4g,jubaosync,
+    resp="4G系统各个功能模块的运作结果将会呈现在这里<br />"
+    return
+}
+//得到举报功能状态，以及举报详情，同步详情
+func GetJbsync()(resp string) {
+    //包含诸如：举报时间，同步时间，举报ID，上次同步状态，本次同步状态
+	url:="http://4g.womenxing.com/?r=site/syncjubao3"
+	resp, statusCode := Get(url)
+	if 200 != statusCode {
+		resp = ""
+	}
+	return
+}
+
 func Get(url string) (content string, statusCode int) {
     resp, err1 := http.Get(url)
     if err1 != nil {
@@ -104,16 +108,12 @@ func Get(url string) (content string, statusCode int) {
     }
     statusCode = resp.StatusCode
     content = string(data)
+	// fmt.Println(reflect.TypeOf(content))
+	// fmt.Println(content)
+	// fmt.Println(statusCode)
     return
 }
-func Jbsync()(resp string) {
-	url:="http://4g.womenxing.com/?r=site/syncjubao3"
-	resp, statusCode := Get(url)
-	// fmt.Println(reflect.TypeOf(resp))
-	// fmt.Println(resp)
-	// fmt.Println(statusCode)
-	if 200 != statusCode {
-		resp = ""
-	}
-	return
+func Homepage(w http.ResponseWriter, r *http.Request) () {
+    content:=""
+    io.WriteString(w,content)
 }
